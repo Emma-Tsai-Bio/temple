@@ -94,15 +94,20 @@
                     <div class="text-temple-red font-bold text-xl mb-3 tracking-widest font-wenkai opacity-90 border-b-2 border-temple-red/20 pb-2 inline-block">雙中慧成宮</div>
 
                     <p id="fortuneId" class="text-sm text-gray-400 mb-1 font-sans mt-2"></p>
-                    <h2 id="fortuneLevel" class="text-4xl font-black text-temple-red mb-2 tracking-widest block font-wenkai"></h2>
+                    <h2 id="fortuneLevel" class="text-4xl font-black text-temple-red tracking-widest block font-wenkai"></h2>
                     
-                    <!-- 💡 終極置中解法：
-                         1. 外層 w-full + flex justify-center 負責防護與左右置中
-                         2. 內層完全放棄 padding 上下推擠，改用最原始的 height 與 line-height 寫死高度
+                    <!-- 💡 終極置中解法 2.0 (針對 html2canvas 跑版問題)：
+                         1. 用實體空白 div 撐開距離，絕對不使用 margin，防止套件算錯位置導致紅框往上飄。
+                         2. 外層改用 text-center，放棄 flex 排版。
+                         3. 內層放棄固定 height/line-height，單純用 padding 讓文字與背景自然撐開垂直置中。
                     -->
-                    <div class="flex justify-center mt-5 mb-8 w-full">
-                        <div id="fortuneTheme" class="bg-temple-red text-white text-sm font-sans tracking-wider rounded-full shadow-sm whitespace-nowrap block box-border" style="height: 34px; line-height: 35px; padding: 0 24px;"></div>
+                    <div style="height: 24px; width: 100%;"></div>
+                    
+                    <div class="w-full text-center block">
+                        <div id="fortuneTheme" class="bg-temple-red text-white text-sm font-sans tracking-wider inline-block shadow-sm whitespace-nowrap" style="border-radius: 9999px; padding: 8px 24px; line-height: 1.5; vertical-align: middle;"></div>
                     </div>
+
+                    <div style="height: 28px; width: 100%;"></div>
 
                     <div id="fortunePoem" class="font-wenkai text-2xl font-bold leading-loose text-temple-text mb-8 tracking-widest flex flex-col items-center gap-2"></div>
 
