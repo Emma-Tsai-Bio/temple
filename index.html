@@ -72,19 +72,32 @@
                 </div>
 
                 <div id="loadingState" class="hidden py-10">
-                    <div class="relative w-28 h-36 bg-[#8B4513] rounded-b-2xl mx-auto shadow-xl flex justify-center border-t-8 border-[#5C2E0B] animate-shake">
-                        <div class="absolute -top-10 left-4 w-2 h-16 bg-[#FCD34D] transform -rotate-12 rounded-t-sm shadow-sm"></div>
-                        <div class="absolute -top-14 left-12 w-2.5 h-20 bg-[#FBBF24] rounded-t-sm shadow-sm"></div>
-                        <div class="absolute -top-12 right-6 w-2 h-16 bg-[#FCD34D] transform rotate-12 rounded-t-sm">
-                            <div class="absolute -top-3 left-0 w-2.5 h-4 bg-red-500 rounded-sm -ml-[1px]"></div>
+                    <!-- 💡 籤筒與籤的終極圖層解法：將它們拆為平行的區塊，讓前面的籤筒蓋住後面的竹籤 -->
+                    <div class="relative w-28 h-36 mx-auto animate-shake">
+                        
+                        <!-- 1. 竹籤層 (在程式碼最前面，自然在底層) -->
+                        <div class="absolute -top-10 left-4 w-2 h-16 bg-[#FCD34D] transform -rotate-12 rounded-t-sm shadow-sm">
+                            <div class="absolute top-0 left-0 w-full h-3 bg-red-500 rounded-t-sm"></div>
                         </div>
                         
-                        <div class="w-8 bg-[#CC0000] mt-2 shadow-md flex flex-col items-center justify-center border border-red-800/30 relative z-10 py-2 gap-[1px]">
-                            <span class="text-[#FCD34D] font-bold text-[13px] leading-none font-wenkai">雙</span>
-                            <span class="text-[#FCD34D] font-bold text-[13px] leading-none font-wenkai">中</span>
-                            <span class="text-[#FCD34D] font-bold text-[13px] leading-none font-wenkai">慧</span>
-                            <span class="text-[#FCD34D] font-bold text-[13px] leading-none font-wenkai">成</span>
-                            <span class="text-[#FCD34D] font-bold text-[13px] leading-none font-wenkai">宮</span>
+                        <div class="absolute -top-14 left-12 w-2.5 h-20 bg-[#FBBF24] rounded-t-sm shadow-sm">
+                            <div class="absolute top-0 left-0 w-full h-3.5 bg-red-500 rounded-t-sm"></div>
+                        </div>
+                        
+                        <div class="absolute -top-12 right-6 w-2 h-16 bg-[#FCD34D] transform rotate-12 rounded-t-sm">
+                            <div class="absolute top-0 left-0 w-full h-3 bg-red-500 rounded-t-sm"></div>
+                        </div>
+                        
+                        <!-- 2. 籤筒本體層 (蓋在竹籤下半部之上) -->
+                        <div class="absolute inset-0 bg-[#8B4513] rounded-b-2xl shadow-xl flex justify-center border-t-8 border-[#5C2E0B] z-10">
+                            <!-- 紅色標籤 -->
+                            <div class="w-8 bg-[#CC0000] mt-2 shadow-md flex flex-col items-center justify-center border border-red-800/30 py-2 gap-[1px]">
+                                <span class="text-[#FCD34D] font-bold text-[13px] leading-none font-wenkai">雙</span>
+                                <span class="text-[#FCD34D] font-bold text-[13px] leading-none font-wenkai">中</span>
+                                <span class="text-[#FCD34D] font-bold text-[13px] leading-none font-wenkai">慧</span>
+                                <span class="text-[#FCD34D] font-bold text-[13px] leading-none font-wenkai">成</span>
+                                <span class="text-[#FCD34D] font-bold text-[13px] leading-none font-wenkai">宮</span>
+                            </div>
                         </div>
                     </div>
                     <p class="mt-12 text-temple-red font-wenkai text-xl tracking-widest animate-pulse">考神賜籤中...</p>
