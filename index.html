@@ -51,76 +51,77 @@
         }
     </script>
 </head>
-<body class="bg-[#FDFBF7] min-h-screen flex flex-col items-center justify-center p-4">
+<body class="bg-[#FDFBF7] min-h-screen flex flex-col items-center justify-center">
 
-    <!-- 截圖主容器 -->
-    <main id="mainContainer" class="w-full max-w-md bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100 relative mt-4">
-        <!-- 頂部紅條 -->
-        <div class="h-3 bg-temple-red w-full"></div>
+    <!-- 💡 修正問題1：截圖外層包裝。加上 p-5 邊距與背景色，防止 html2canvas 裁切圓角與陰影 -->
+    <div id="captureWrapper" class="w-full max-w-md p-5 bg-[#FDFBF7] flex flex-col items-center">
+        <!-- 截圖主容器 -->
+        <main id="mainContainer" class="w-full bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100 relative">
+            <!-- 頂部紅條 -->
+            <div class="h-3 bg-temple-red w-full"></div>
 
-        <div class="p-6 md:p-8 text-center" id="appContent">
-            
-            <!-- ====== 狀態 1：首頁 (融入您指定的結構與文字) ====== -->
-            <div id="homeState" class="block py-6">
-                <!-- 保留神社 icon -->
-                <div class="mb-4 flex justify-center text-7xl drop-shadow-md">
-                    ⛩️
-                </div>
-                <!-- 替換為您指定的標題與文字 -->
-                <h1 class="text-3xl font-bold font-wenkai text-temple-red mb-4 tracking-widest">🎓 讀書運勢求籤筒</h1>
-                <p class="text-gray-600 mb-8 font-wenkai text-lg leading-relaxed">在心中默念你近期的學習煩惱，<br>然後點擊按鈕求籤。</p>
+            <div class="p-6 md:p-8 text-center" id="appContent">
                 
-                <button onclick="startDraw()" class="bg-temple-red text-white font-wenkai text-xl py-3 px-10 rounded-full shadow-lg hover:bg-red-800 transition-colors tracking-widest">
-                    誠心求籤
-                </button>
-            </div>
-
-            <!-- ====== 狀態 2：動畫中 (籤筒) ====== -->
-            <div id="loadingState" class="hidden py-10">
-                <div class="relative w-28 h-36 bg-[#8B4513] rounded-b-2xl mx-auto shadow-xl flex justify-center border-t-8 border-[#5C2E0B] animate-shake">
-                    <div class="absolute -top-10 left-4 w-2 h-16 bg-[#FCD34D] transform -rotate-12 rounded-t-sm shadow-sm"></div>
-                    <div class="absolute -top-14 left-12 w-2.5 h-20 bg-[#FBBF24] rounded-t-sm shadow-sm"></div>
-                    <div class="absolute -top-12 right-6 w-2 h-16 bg-[#FCD34D] transform rotate-12 rounded-t-sm">
-                        <div class="absolute -top-3 left-0 w-2.5 h-4 bg-red-500 rounded-sm -ml-[1px]"></div>
+                <!-- ====== 狀態 1：首頁 ====== -->
+                <div id="homeState" class="block py-6">
+                    <div class="mb-4 flex justify-center text-7xl drop-shadow-md">
+                        ⛩️
                     </div>
+                    <h1 class="text-3xl font-bold font-wenkai text-temple-red mb-4 tracking-widest">🎓 讀書運勢求籤筒</h1>
+                    <p class="text-gray-600 mb-8 font-wenkai text-lg leading-relaxed">在心中默念你近期的學習煩惱，<br>然後點擊按鈕求籤。</p>
                     
-                    <div class="w-8 bg-[#CC0000] mt-2 shadow-md flex flex-col items-center justify-center border border-red-800/30 relative z-10 py-2 gap-[1px]">
-                        <span class="text-[#FCD34D] font-bold text-[13px] leading-none font-wenkai">雙</span>
-                        <span class="text-[#FCD34D] font-bold text-[13px] leading-none font-wenkai">中</span>
-                        <span class="text-[#FCD34D] font-bold text-[13px] leading-none font-wenkai">慧</span>
-                        <span class="text-[#FCD34D] font-bold text-[13px] leading-none font-wenkai">成</span>
-                        <span class="text-[#FCD34D] font-bold text-[13px] leading-none font-wenkai">宮</span>
+                    <button onclick="startDraw()" class="bg-temple-red text-white font-wenkai text-xl py-3 px-10 rounded-full shadow-lg hover:bg-red-800 transition-colors tracking-widest">
+                        誠心求籤
+                    </button>
+                </div>
+
+                <!-- ====== 狀態 2：動畫中 (籤筒) ====== -->
+                <div id="loadingState" class="hidden py-10">
+                    <div class="relative w-28 h-36 bg-[#8B4513] rounded-b-2xl mx-auto shadow-xl flex justify-center border-t-8 border-[#5C2E0B] animate-shake">
+                        <div class="absolute -top-10 left-4 w-2 h-16 bg-[#FCD34D] transform -rotate-12 rounded-t-sm shadow-sm"></div>
+                        <div class="absolute -top-14 left-12 w-2.5 h-20 bg-[#FBBF24] rounded-t-sm shadow-sm"></div>
+                        <div class="absolute -top-12 right-6 w-2 h-16 bg-[#FCD34D] transform rotate-12 rounded-t-sm">
+                            <div class="absolute -top-3 left-0 w-2.5 h-4 bg-red-500 rounded-sm -ml-[1px]"></div>
+                        </div>
+                        
+                        <div class="w-8 bg-[#CC0000] mt-2 shadow-md flex flex-col items-center justify-center border border-red-800/30 relative z-10 py-2 gap-[1px]">
+                            <span class="text-[#FCD34D] font-bold text-[13px] leading-none font-wenkai">雙</span>
+                            <span class="text-[#FCD34D] font-bold text-[13px] leading-none font-wenkai">中</span>
+                            <span class="text-[#FCD34D] font-bold text-[13px] leading-none font-wenkai">慧</span>
+                            <span class="text-[#FCD34D] font-bold text-[13px] leading-none font-wenkai">成</span>
+                            <span class="text-[#FCD34D] font-bold text-[13px] leading-none font-wenkai">宮</span>
+                        </div>
+                    </div>
+                    <p class="mt-12 text-temple-red font-wenkai text-xl tracking-widest animate-pulse">考神賜籤中...</p>
+                </div>
+
+                <!-- ====== 狀態 3：抽籤結果 ====== -->
+                <div id="resultState" class="hidden">
+                    <div class="text-temple-red font-bold text-xl mb-3 tracking-widest font-wenkai opacity-90 border-b-2 border-temple-red/20 pb-2 inline-block">雙中慧成宮</div>
+
+                    <p id="fortuneId" class="text-sm text-gray-400 mb-1 font-sans mt-2"></p>
+                    <h2 id="fortuneLevel" class="text-4xl font-black text-temple-red mb-4 tracking-widest block font-wenkai"></h2>
+                    
+                    <div class="inline-flex items-center justify-center bg-temple-red text-white text-sm px-4 py-1.5 rounded-full mt-2 mb-8 font-sans tracking-wider shadow-sm" style="line-height: normal;" id="fortuneTheme"></div>
+
+                    <div id="fortunePoem" class="font-wenkai text-2xl font-bold leading-loose text-temple-text mb-8 tracking-widest flex flex-col items-center gap-2"></div>
+
+                    <div class="text-left border-t border-gray-200 pt-6 mt-4">
+                        <h3 class="text-xl font-bold text-temple-red mb-3 border-b-2 border-temple-red inline-block pb-1 font-wenkai">解曰</h3>
+                        <p id="fortuneExplanation" class="text-gray-600 font-wenkai leading-relaxed text-lg"></p>
                     </div>
                 </div>
-                <p class="mt-12 text-temple-red font-wenkai text-xl tracking-widest animate-pulse">考神賜籤中...</p>
-            </div>
-
-            <!-- ====== 狀態 3：抽籤結果 (也就是您提到的 resultCard) ====== -->
-            <div id="resultState" class="hidden">
-                <div class="text-temple-red font-bold text-xl mb-3 tracking-widest font-wenkai opacity-90 border-b-2 border-temple-red/20 pb-2 inline-block">雙中慧成宮</div>
-
-                <p id="fortuneId" class="text-sm text-gray-400 mb-1 font-sans mt-2"></p>
-                <h2 id="fortuneLevel" class="text-4xl font-black text-temple-red mb-4 tracking-widest block font-wenkai"></h2>
                 
-                <div class="inline-flex items-center justify-center bg-temple-red text-white text-sm px-4 py-1.5 rounded-full mt-2 mb-8 font-sans tracking-wider shadow-sm" style="line-height: normal;" id="fortuneTheme"></div>
-
-                <div id="fortunePoem" class="font-wenkai text-2xl font-bold leading-loose text-temple-text mb-8 tracking-widest flex flex-col items-center gap-2"></div>
-
-                <div class="text-left border-t border-gray-200 pt-6 mt-4">
-                    <h3 class="text-xl font-bold text-temple-red mb-3 border-b-2 border-temple-red inline-block pb-1 font-wenkai">解曰</h3>
-                    <p id="fortuneExplanation" class="text-gray-600 font-wenkai leading-relaxed text-lg"></p>
+                <!-- 下載圖片時專用的版權浮水印 (預設隱藏，截圖時顯示) -->
+                <div id="exportCopyright" class="hidden mt-8 mb-2 text-xs text-gray-400 font-sans text-center font-bold tracking-widest">
+                    © 專屬雙中的100首讀書籤詩
                 </div>
             </div>
-            
-            <!-- 下載圖片時專用的版權浮水印 (預設隱藏，截圖時顯示) -->
-            <div id="exportCopyright" class="hidden mt-8 mb-2 text-xs text-gray-400 font-sans text-center font-bold tracking-widest">
-                © 專屬雙中的100首讀書籤詩
-            </div>
-        </div>
-    </main>
+        </main>
+    </div>
 
     <!-- 網頁首頁最下方的版權宣告 -->
-    <div class="mt-8 mb-4 text-center text-gray-400 text-xs font-sans tracking-widest">
+    <div class="mt-4 mb-8 text-center text-gray-400 text-xs font-sans tracking-widest">
         © 專屬雙中的100首讀書籤詩
     </div>
 
@@ -135,20 +136,19 @@
         </button>
     </div>
 
-    <!-- 圖片預覽遮罩 (解決 LINE/手機 無法下載的問題) -->
-    <div id="imageModal" class="hidden fixed inset-0 bg-black/90 z-[100] flex-col items-center justify-center p-6 backdrop-blur-sm transition-opacity">
-        <div class="w-full max-w-sm relative flex flex-col items-center">
-            <button onclick="closeModal()" class="absolute -top-12 right-0 text-white/80 hover:text-white p-2">
-                <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-            </button>
+    <!-- 💡 修正問題2：圖片預覽遮罩 (加入 overflow-y-auto 允許上下滑動，修改提示詞) -->
+    <div id="imageModal" class="hidden fixed inset-0 bg-black/95 z-[100] overflow-y-auto">
+        <!-- 確保內容最小高度為滿版，以便垂直置中，超出版面則滑動 -->
+        <div class="min-h-screen w-full flex flex-col items-center justify-center p-6 py-12">
             
-            <div class="text-white text-lg font-bold mb-4 font-wenkai animate-bounce tracking-widest text-center shadow-black drop-shadow-md">
-                👇 請「長按圖片」儲存至手機相簿 👇
+            <div class="text-white text-xl font-bold mb-6 font-wenkai animate-bounce tracking-widest text-center shadow-black drop-shadow-md">
+                👇 請長按儲存圖片 👇
             </div>
             
-            <img id="generatedImg" src="" class="w-full rounded-xl shadow-2xl border-2 border-white/20 select-auto pointer-events-auto" alt="專屬籤詩">
+            <img id="generatedImg" src="" class="w-full max-w-sm rounded-xl shadow-2xl border border-white/10 select-auto pointer-events-auto" alt="專屬籤詩">
             
-            <button onclick="closeModal()" class="mt-8 bg-white/20 text-white px-8 py-2.5 rounded-full font-wenkai border border-white/40 hover:bg-white/30 transition-colors tracking-widest">
+            <!-- 放大的返回按鈕，置於最下方 -->
+            <button onclick="closeModal()" class="mt-10 mb-8 bg-white/20 text-white px-10 py-3 rounded-full font-wenkai text-lg border border-white/40 hover:bg-white/30 transition-colors tracking-widest">
                 返回
             </button>
         </div>
@@ -164,7 +164,6 @@
                 poem: ["學如不及猶恐失", "溫故知新莫遲疑", "心無旁騖勤修練", "金榜題名待有時"],
                 explanation: "保持虛心求教的心態，不斷複習舊知識並吸收新知識。只要專心致志，金榜題名指日可待！"
             },
-            // ... 您可以在這裡貼上其餘的籤詩資料
             {
                 id: "第 2 籤",
                 level: "【 中吉 】",
@@ -227,11 +226,12 @@
 
         function closeModal() {
             document.getElementById('imageModal').classList.add('hidden');
-            document.getElementById('imageModal').classList.remove('flex');
+            document.getElementById('imageModal').classList.remove('block');
         }
 
         function downloadImage() {
-            const captureTarget = document.getElementById('mainContainer');
+            // 💡 修正：改成對整組「包有邊距的容器」截圖，圓角與邊框就不會被裁切了
+            const captureTarget = document.getElementById('captureWrapper');
             const copyright = document.getElementById('exportCopyright');
             const btn = document.getElementById('downloadBtn');
             const originalHTML = btn.innerHTML;
@@ -252,14 +252,14 @@
                 html2canvas(captureTarget, { 
                     scale: 3, 
                     useCORS: true,
-                    backgroundColor: "#ffffff",
+                    backgroundColor: "#FDFBF7", // 確保背景色一致
                     logging: false
                 }).then(canvas => {
                     const imgData = canvas.toDataURL('image/png');
                     document.getElementById('generatedImg').src = imgData;
                     
                     document.getElementById('imageModal').classList.remove('hidden');
-                    document.getElementById('imageModal').classList.add('flex');
+                    document.getElementById('imageModal').classList.add('block');
                     
                     btn.innerHTML = originalHTML;
                     btn.disabled = false;
