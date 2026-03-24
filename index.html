@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎓 讀書運勢求籤筒</title>
+    <!-- 引入 Tailwind CSS 讓排版更美觀 -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 引入 Noto Serif TC 字體，增加籤詩的古典感 -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;700;900&display=swap" rel="stylesheet">
+    <!-- 引入 LXGW WenKai TC (霞鶩文楷)，專供籤詩使用 -->
+    <link href="https://fonts.googleapis.com/css2?family=LXGW+WenKai+TC&display=swap" rel="stylesheet">
+    <!-- 引入 html2canvas 以支援截圖下載 -->
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        temple: {
+                            red: '#8B1D1D',
+                            light: '#A53434',
+                            paper: '#FDFBF7',
+                            border: '#D4C5B0',
+                            text: '#2D2926'
+                        }
+                    },
+                    fontFamily: {
+                        serif: ['"Noto Serif TC"', 'serif'],
+                        wenkai: ['"LXGW WenKai TC"', 'serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background-color: #f4f1ea;
+            background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23d4c5b0' fill-opacity='0.15'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+        }
+        
+        /* 搖晃動畫 */
+        .shake-animation {
+            animation: shake 0.6s cubic-bezier(.36,.07,.19,.97) both infinite;
+        }
+
+        @keyframes shake {
+            10%, 90% { transform: translate3d(-2px, 0, 0) rotate(-2deg); }
+            20%, 80% { transform: translate3d(3px, 0, 0) rotate(2deg); }
+            30%, 50%, 70% { transform: translate3d(-5px, 0, 0) rotate(-4deg); }
+            40%, 60% { transform: translate3d(5px, 0, 0) rotate(4deg); }
+        }
+
+        /* 籤詩卡片進場動畫 */
+        .fade-in-up {
+            animation: fadeInUp 0.8s ease-out forwards;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* 隱藏滾動條但保留功能 */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        /* 籤筒搖晃動畫 */
+        .shake-container {
+            animation: shake-cylinder 0.12s ease-in-out infinite alternate;
+            transform-origin: bottom center;
+        }
+        @keyframes shake-cylinder {
+            from { transform: rotate(-8deg); }
+            to { transform: rotate(8deg); }
+        }
+
+        /* 抽出籤的動畫 */
+        .draw-stick-anim {
+            animation: fly-out 0.8s ease-in forwards;
+        }
+        @keyframes fly-out {
+            0% { transform: translateY(0); }
+            40% { transform: translateY(-60px); opacity: 1; }
+            100% { transform: translateY(-150px) scale(1.2); opacity: 0; }
+        }
+
+        /* 直書文字 */
+        .vertical-text {
+            writing-mode: vertical-rl;
+            text-orientation: upright;
+            letter-spacing: 0.1em;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4 font-serif text-temple-text">
+
+    <div class="max-w-md w-full relative">
+        <!-- 主視窗容器 (加入 id="mainContainer" 作為截圖的外框範圍) -->
+        <div id="mainContainer" class="bg-temple-paper rounded-2xl shadow-2xl border-2 border-temple-border overflow-hidden">
+            
+            <!-- 頂部裝飾 -->
+            <div class="h-3 bg-temple-red w-full"></div>
+
+            <!-- 狀態 1：首頁與求籤按鈕 -->
+            <div id="homeState" class="p-8 text-center transition-all duration-300">
+                
+                <!-- 神社彩色圖案 (替換原本的學業圖案) -->
+                <div class="mb-4 flex justify-center text-7xl drop-shadow-md">
+                    ⛩️
+                </div>
+
+                <h1 class="text-3xl font-black text-temple-red mb-2 tracking-wider">讀書運勢求籤筒</h1>
+                <p class="text-gray-500 mb-8 text-sm">在心中默念你近期的學習煩惱或目標<br>誠心點擊下方按鈕求籤</p>
+                
+                <button onclick="startDrawing()" class="w-full bg-temple-red hover:bg-temple-light text-white font-bold py-4 px-8 rounded-xl shadow-lg transform transition-transform active:scale-95 text-xl tracking-widest flex justify-center items-center gap-2">
+                    <span>誠心求籤</span>
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                </button>
+            </div>
+
+            <!-- 狀態 1.5：動畫播放區塊 (按下按鈕後才顯示) -->
+            <div id="animationState" class="hidden p-8 text-center flex-col items-center justify-center min-h-[300px]">
+                <div id="fortuneAnimationBox" class="relative mx-auto w-32 h-40 flex justify-center items-end mt-4">
+                    <!-- 所有的籤 (在筒子內部/後方) -->
+                    <div class="absolute bottom-4 w-16 h-32 flex justify-around items-end z-0 pb-2">
+                        <div class="w-1 h-24 bg-amber-200 rounded-t origin-bottom transform -rotate-12"></div>
+                        <div class="w-1.5 h-28 bg-amber-300 rounded-t origin-bottom transform -rotate-6"></div>
+                        <!-- 被抽出的籤 -->
+                        <div id="winningStick" class="w-2 h-32 bg-amber-200 rounded-t shadow-sm origin-bottom transform relative z-10 border border-amber-400">
+                            <!-- 籤頂端的紅色標記 -->
+                            <div class="w-full h-2 bg-red-500 rounded-t"></div>
+                        </div>
+                        <div class="w-1.5 h-26 bg-amber-300 rounded-t origin-bottom transform rotate-6"></div>
+                        <div class="w-1 h-24 bg-amber-200 rounded-t origin-bottom transform rotate-12"></div>
+                    </div>
+
+                    <!-- 籤筒前半部 -->
+                    <div class="relative z-20 w-24 h-28 bg-gradient-to-br from-amber-700 via-amber-800 to-amber-900 rounded-b-2xl border-t-4 border-amber-950 shadow-lg flex justify-center items-center">
+                        <!-- 春聯裝飾 -->
+                        <div class="bg-red-600 border-2 border-yellow-500 px-1 py-2 shadow-md">
+                            <div class="text-yellow-300 font-bold text-sm vertical-text">雙中慧成宮</div>
+                        </div>
+                    </div>
+                </div>
+                <p class="text-temple-red mt-8 font-bold tracking-widest animate-pulse">考神賜籤中...</p>
+            </div>
+
+            <!-- 狀態 2：籤詩結果卡片 -->
+            <div id="resultState" class="hidden p-6 md:p-8">
+                <!-- 籤詩卡片本體 (加入 id 以便截圖) -->
+                <div id="fortuneCard" class="relative bg-white p-6 md:p-8 rounded-xl border border-temple-border shadow-inner text-center">
+                    <!-- 左上角裝飾 -->
+                    <div class="absolute top-2 left-2 text-temple-red opacity-20 text-2xl">⌜</div>
+                    <!-- 右下角裝飾 -->
+                    <div class="absolute bottom-2 right-2 text-temple-red opacity-20 text-2xl">⌟</div>
+
+                    <!-- 新增：專屬宮廟字樣 (加粗底線讓截圖更清晰) -->
+                    <div class="text-temple-red font-bold text-xl mb-3 tracking-widest font-wenkai opacity-90 border-b-2 border-temple-red/20 pb-2 inline-block">雙中慧成宮</div>
+
+                    <p id="fortuneId" class="text-sm text-gray-400 mb-1 font-sans mt-2"></p>
+                    <h2 id="fortuneLevel" class="text-3xl font-black text-temple-red mb-4 tracking-widest block"></h2>
+                    
+                    <!-- 修正主題標籤重疊：改為 inline-block 並加大上下間距，避免截圖時排版擠壓 -->
+                    <div class="inline-block bg-temple-red text-white text-sm px-4 py-1.5 rounded-full mt-2 mb-8 font-sans tracking-wider shadow-sm" id="fortuneTheme"></div>
+
+                    <!-- 籤詩內文 (套用 霞鶩文楷 字體與四句排版結構) -->
+                    <div id="fortunePoem" class="font-wenkai text-xl md:text-2xl font-bold leading-loose text-temple-text mb-8 tracking-wide flex flex-col items-center gap-2">
+                        <!-- 程式動態填入 -->
+                    </div>
+
+                    <div class="w-full h-px bg-temple-border mb-6"></div>
+
+                    <!-- 解籤區塊 (維持原體) -->
+                    <div class="text-left">
+                        <span class="inline-block text-temple-red font-bold mb-2 border-b-2 border-temple-red pb-1">解曰</span>
+                        <p id="fortuneExplanation" class="text-gray-700 leading-relaxed font-sans text-sm md:text-base"></p>
+                    </div>
+                </div>
+
+                <!-- 專供截圖時顯示的版權宣告 (預設為隱藏) -->
+                <div id="exportCopyright" class="hidden text-center text-gray-400 text-xs mt-6 mb-2 font-sans font-bold tracking-widest">
+                    © 專屬雙中的100首讀書籤詩
+                </div>
+
+                <!-- 底部按鈕 -->
+                <div id="actionButtons" class="mt-6 flex gap-3">
+                    <button onclick="resetApp()" class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold py-3 px-4 rounded-lg transition-colors text-sm md:text-base">
+                        再求一籤
+                    </button>
+                    <!-- 下載分享按鈕 -->
+                    <button id="downloadBtn" onclick="downloadImage()" class="flex-1 border-2 border-temple-red text-temple-red hover:bg-red-50 font-bold py-3 px-4 rounded-lg transition-colors text-sm md:text-base flex justify-center items-center gap-1">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                        下載分享
+                    </button>
+                </div>
+            </div>
+
+        </div>
+        
+        <!-- 底部版權/小字 -->
+        <p class="text-center text-gray-400 text-xs mt-6 font-sans mb-4">© 專屬雙中的100首讀書籤詩</p>
+    </div>
+
+    <!-- JavaScript 邏輯與 100 首籤詩資料庫 -->
+    <script>
+        // 100 首籤詩資料庫
+        const fortunes = [
+            // 綜合基礎篇 (1-20)
+            { id: 1, level: "大吉", theme: "考前心態", poem: "十年寒窗苦讀書，一朝金榜把名標。<br>莫道前路多風雨，蟾宮折桂在今朝。", explanation: "努力終有回報！大考或測驗將至，請保持絕對的信心，你平時的累積即將轉化為優異的成績。" },
+            { id: 2, level: "中吉", theme: "讀書方法", poem: "書山有路勤為徑，學海無涯苦作舟。<br>循序漸進莫心急，自有碩果滿枝頭。", explanation: "讀書沒有捷徑。只要按部就班複習，把基礎打穩，不要好高騖遠，成績自然會穩步提升。" },
+            { id: 3, level: "小吉", theme: "專注力", poem: "半讀半嬉總蹉跎，收心養性莫蹉跎。<br>若問前程何處去，案前明月伴吟哦。", explanation: "最近似乎有些分心喔！需要收起玩心。只要專注當下，立刻翻開書本，就能看見進步。" },
+            { id: 4, level: "平", theme: "讀書計畫", poem: "平時不燒香拜佛，臨時抱佛腳難安。<br>從今立下青雲志，日積月累度難關。", explanation: "不要再依靠「考前突擊」了。現在立刻制定讀書計畫，每天進步一點點，才能安穩過關。" },
+            { id: 5, level: "警惕", theme: "誘惑干擾", poem: "網海沉迷忘歸路，螢幕流連誤青春。<br>勸君早悟回頭是，莫待放榜始傷神。", explanation: "大凶！過度沉迷手機、遊戲或社群網路，已嚴重影響學業。請立刻將手機拿遠一點，回到書桌前。" },
+            { id: 6, level: "大吉", theme: "學習效率", poem: "文曲星君照書房，茅塞頓開理明彰。<br>千絲萬縷皆理順，下筆千言文章長。", explanation: "靈感湧現，今日讀書效率極高！非常適合在此刻攻克平常覺得最困難的科目或難題。" },
+            { id: 7, level: "中吉", theme: "同儕討論", poem: "三人行裡有我師，不恥下問解群疑。<br>切磋琢磨同進步，金榜題名共佳期。", explanation: "遇到不懂的問題千萬不要悶著頭想。多發問，與同學一起討論學習，會有事半功倍的效果。" },
+            { id: 8, level: "小吉", theme: "複習策略", poem: "昨日所學今日忘，溫故知新是良方。<br>反覆咀嚼書中味，根基穩固迎大考。", explanation: "記憶力似乎有點下降，建議加強「複習」的比例。把錯題本拿出來重新看過，會有新收穫。" },
+            { id: 9, level: "平", theme: "靜心學習", poem: "心浮氣躁難成事，靜心凝神方為高。<br>窗外繁華休理會，獨坐書齋品離騷。", explanation: "心情浮躁，坐在書桌前也讀不進去。建議先深呼吸喝口水，聽點無歌詞的白噪音，靜下心再開始。" },
+            { id: 10, level: "警惕", theme: "堅持到底", poem: "朝三暮四無定性，東翻西找空費心。<br>讀書須有長遠計，切莫半途廢光陰。", explanation: "讀書計畫一改再改，參考書買了一堆卻都沒看完。請選定一個小目標，堅持到底才是最重要的。" },
+            { id: 11, level: "大吉", theme: "突破瓶頸", poem: "撥雲見日曙光現，百步穿楊箭中靶。<br>過往迷惘皆消散，胸有成竹赴考場。", explanation: "恭喜！你終於弄懂了那些卡關很久的難題。現在是你狀態最好的時候，請保持這份自信！" },
+            { id: 12, level: "中吉", theme: "貴人相助", poem: "春風化雨潤無聲，良師益友伴我行。<br>筆下生花思如泉，學業更上一層樓。", explanation: "學習上有貴人相助。多聽老師的建議，或是參考學霸同學的筆記，對你會非常有幫助。" },
+            { id: 13, level: "小吉", theme: "作息調整", poem: "早起鳥兒有蟲吃，晨光伴讀最相宜。<br>莫戀枕頭暖如春，寸陰是競莫遲疑。", explanation: "早上是頭腦最清醒的時候。試著明天早起半小時背單字或課文，效果會比熬夜好很多。" },
+            { id: 14, level: "平", theme: "基礎扎根", poem: "不積跬步無以至，不積小流無以成。<br>點滴累積是王道，莫貪捷徑誤前程。", explanation: "學習不能一蹴可幾。請耐下心來，把每一個基本觀念都弄清楚，不要只看重點整理。" },
+            { id: 15, level: "警惕", theme: "驕兵必敗", poem: "驕兵必敗古來訓，自滿自足阻前程。<br>山外有山人外人，虛心求教方能成。", explanation: "最近可能因為一次好成績而有些驕傲鬆懈了。請保持謙卑，小心粗心大意失荊州。" },
+            { id: 16, level: "大吉", theme: "實力展現", poem: "胸藏萬卷氣自華，腹有詩書語堪誇。<br>今日考場試鋒芒，他朝展翅騰雲霞。", explanation: "準備非常充足，實力堅強！放輕鬆去面對接下來的測驗，你一定能發揮出最佳水準。" },
+            { id: 17, level: "中吉", theme: "苦盡甘來", poem: "披星戴月不辭勞，鐵杵磨針志氣高。<br>皇天不負苦心人，桂冠終究為汝戴。", explanation: "你的努力與辛苦大家都看在眼裡。雖然現在覺得很累，但請相信，這一切的汗水都是值得的。" },
+            { id: 18, level: "小吉", theme: "亡羊補牢", poem: "書到用時方恨少，事非經過不知難。<br>從今發憤勤補漏，亡羊補牢未為晚。", explanation: "寫題目的時候才發現很多觀念忘了對吧？別灰心，現在發現不足還來得及！趕快把不熟的章節補救。" },
+            { id: 19, level: "平", theme: "適度休息", poem: "勞逸結合是良策，弦繃太緊易折斷。<br>偷得浮生半日閒，養精蓄銳再衝刺。", explanation: "抽到這支籤，代表你太累了！今天允許自己休息一下，睡個好覺，明天效率會更好。" },
+            { id: 20, level: "警惕", theme: "誠實面對", poem: "抄襲作弊不可取，虛假成績終成空。<br>誠實面對己不足，腳踏實地才是真。", explanation: "學習態度需要端正。不要投機取巧，誠實面對自己的弱點並改進它，才是真正的學習。" },
+
+            // 考前焦慮與準備方向 (21-40)
+            { id: 21, level: "大吉", theme: "考前焦慮", poem: "莫憂前路盡陰霾，深呼吸後見華臺。<br>千百日夜無白費，平心靜氣好運來。", explanation: "考前感到緊張焦慮是正常的。深呼吸，相信自己平時的積累，放輕鬆就能迎來超水準的表現。" },
+            { id: 22, level: "中吉", theme: "準備方向", poem: "題海無涯何處去，去蕪存菁抓重點。<br>歷屆試題是明燈，莫再盲目瞎翻書。", explanation: "放下過度艱澀的參考書。現在最關鍵的是專攻「歷屆試題」與「錯題本」，掌握核心考點。" },
+            { id: 23, level: "小吉", theme: "考試心態", poem: "得失之心莫太重，盡力而為即英雄。<br>勝敗乃是兵家事，放開胸懷天地空。", explanation: "不要過度在意最後的分數或排名，只要準備過程中已經拼盡全力，你就是自己的英雄。" },
+            { id: 24, level: "平", theme: "考前焦慮", poem: "夜半驚醒汗濕衣，心慌意亂神游離。<br>此時休要強背誦，安神入眠最相宜。", explanation: "焦慮導致失眠。現在硬背也記不住了，請立刻放下書本，聽點輕音樂，好好睡一覺。" },
+            { id: 25, level: "警惕", theme: "準備方向", poem: "偏食挑科不可取，弱項不補定吃虧。<br>截長補短方為上，莫待分曉悔遲遲。", explanation: "注意！你是不是一直在逃避最討厭的科目？立刻去補救弱勢科目，別讓它拖垮總成績。" },
+            { id: 26, level: "大吉", theme: "考試心態", poem: "氣定神閒坐考堂，千軍萬馬任我狂。<br>平生所學皆化刃，破浪乘風掛帆揚。", explanation: "進入考場時請把自己當成王者。帶著絕對的自信作答，遇到難題先跳過，氣勢對了分數就拿到了！" },
+            { id: 27, level: "中吉", theme: "考前焦慮", poem: "比較之心最傷神，他人進度莫過問。<br>專注自我步伐穩，步步生蓮自超群。", explanation: "別人的進度與你無關，不要因為別人瘋狂翻書而恐慌。專注在自己的讀書計畫上就是捷徑。" },
+            { id: 28, level: "小吉", theme: "準備方向", poem: "筆記斑斕色彩多，若不複習又如何。<br>精簡綱要留腦海，去繁就簡過長河。", explanation: "考前衝刺請停止做「新筆記」，將現有筆記「化繁為簡」，變成能在考場瞬間回憶的關鍵字。" },
+            { id: 29, level: "平", theme: "考試心態", poem: "粗心大意失荊州，審題不清最堪憂。<br>字字句句看仔細，三思而後再下筆。", explanation: "你最大的敵人不是題目太難，而是「粗心」。作答時務必圈出題目的關鍵字，避免冤枉失分。" },
+            { id: 30, level: "警惕", theme: "考前焦慮", poem: "杞人憂天添愁煩，未戰先降心已寒。<br>拋開萬般假想敵，迎難而上破重關。", explanation: "停止內耗！與其煩惱「考砸了怎麼辦」，不如把現在的時間拿去多背一個單字、多算一題數學。" },
+            { id: 31, level: "大吉", theme: "考試心態", poem: "樂觀以待天地寬，微笑迎考過難關。<br>心中有光自明朗，落筆生花捷報還。", explanation: "保持微笑與好心情！用樂觀的態度面對每一份試卷，你的直覺會因為心情好而比平常更準確。" },
+            { id: 32, level: "中吉", theme: "準備方向", poem: "基礎不穩樓台搖，萬丈高樓平地造。<br>課本觀念重頭看，萬變不離其中妙。", explanation: "與其狂刷艱澀的超綱題，不如回歸課本。把最基礎的核心觀念讀熟，就能拿下八成基本分。" },
+            { id: 33, level: "小吉", theme: "考前焦慮", poem: "弦繃太緊聲易啞，適度放鬆開新花。<br>漫步操場迎晚風，洗滌塵念思無涯。", explanation: "高壓讓你喘不過氣了。給自己半小時去散步或發呆，清空大腦的緩衝區，記憶力會更好。" },
+            { id: 34, level: "平", theme: "考試心態", poem: "遇難不慌且跳過，執著一題時間錯。<br>全局在胸有定奪，回頭再戰定斬獲。", explanation: "遇到卡住的難題，請勇敢地跳過它！先把會拿的分數全拿到，最後再來挑戰魔王題。" },
+            { id: 35, level: "警惕", theme: "準備方向", poem: "臨陣磨槍圖快意，走馬看花一場空。<br>若無平日深耕耘，怎求金榜題名中。", explanation: "你的複習方式太過敷衍，只是眼睛掃過。請拿起筆來，實際遮住答案算過、寫過，確認真的懂。" },
+            { id: 36, level: "大吉", theme: "考前焦慮", poem: "烏雲散盡月華明，心如止水鑑真情。<br>萬事俱備東風至，只需靜候佳音聽。", explanation: "其實你已經準備得很充分了，不必再自我懷疑。你需要的是全然的平靜與自信，迎接勝利吧！" },
+            { id: 37, level: "中吉", theme: "考試心態", poem: "沉著應戰莫心急，穩紮穩打步步奇。<br>不到鐘響不放棄，絕地反攻看今夕。", explanation: "考場上千萬不要提早交卷！堅持到最後一分鐘多檢查一遍，說不定能救回粗心扣掉的分數。" },
+            { id: 38, level: "小吉", theme: "準備方向", poem: "單打獨鬥多盲點，求教明師闢新天。<br>與友同窗齊共勉，茅塞頓開笑顏展。", explanation: "遇到盲點不要自己鑽牛角尖。勇敢去請教老師或同學，這會是你考前突破瓶頸的最佳武器。" },
+            { id: 39, level: "平", theme: "考前焦慮", poem: "腸胃不適心亦慌，飲食清淡保健康。<br>身安方能神清爽，從容應試莫逞強。", explanation: "壓力已轉化為生理不適。考前幾天務必注意飲食清淡、早睡早起。照顧好身體大腦才能運作。" },
+            { id: 40, level: "大吉", theme: "考試心態", poem: "寶劍鋒從磨礪出，梅花香自苦寒來。<br>今朝試卷如試金，真金不怕烈火烘。", explanation: "把大考當作展現自我的舞台！考前的壓力和痛苦正是將你淬鍊成鑽石的過程。勇敢迎戰！" },
+
+            // 學業與玩樂、手機誘惑、同儕關係 (41-60)
+            { id: 41, level: "大吉", theme: "學業與玩樂", poem: "勞逸均分兩不誤，遊樂歸來翻書卷。<br>收放自如真學霸，春風得意馬蹄疾。", explanation: "你把時間管理得非常棒！玩樂時盡興，讀書時專注。繼續保持這份節奏，必定有好成績。" },
+            { id: 42, level: "中吉", theme: "手機的誘惑", poem: "螢幕微光迷人眼，書頁翻飛墨亦香。<br>暫別短片與網海，專心致志獲滿堂。", explanation: "請暫時把手機關機吧！當你願意放下手機專注於眼前的書本，你會發現自己的記憶力非常驚人。" },
+            { id: 43, level: "小吉", theme: "讀書與友誼", poem: "三五好友聚一堂，莫把閒聊當同窗。<br>互相抽考論學理，攜手並進共榮光。", explanation: "和朋友去圖書館都在聊天？把聚會變成「互相抽考」的戰鬥吧！真正的友誼是陪伴彼此一起進步。" },
+            { id: 44, level: "平", theme: "學業與玩樂", poem: "明日復明日無盡，玩樂總覺光陰短。<br>若不今朝收心念，臨考徒留悔恨長。", explanation: "「再玩十分鐘」往往變成一小時。現在立刻中斷娛樂，只要撐過坐回書桌的前十分鐘就能進入心流。" },
+            { id: 45, level: "警惕", theme: "手機的誘惑", poem: "動態時報刷不停，按讚留言誤正經。<br>社群虛名皆浮雲，真實成績見分明。", explanation: "大凶！一直看別人的限時動態只會讓你更焦慮。請暫時移除社群軟體，你的未來比點讚數重要多了。" },
+            { id: 46, level: "大吉", theme: "讀書與友誼", poem: "知音難覓今相遇，切磋琢磨共解題。<br>並肩作戰情誼深，金榜題名笑相攜。", explanation: "恭喜！你身邊有一群很棒的讀書夥伴。遇到難題互相指教、低潮時打氣，你們一定能一起達標。" },
+            { id: 47, level: "中吉", theme: "學業與玩樂", poem: "忍得一時枯燥苦，換來他日任遨遊。<br>考後狂歡須有本，此時且把心收留。", explanation: "現在真的很想出去玩對吧？告訴自己：只要撐過這段時間，考完試就能毫無負擔地盡情狂歡。" },
+            { id: 48, level: "小吉", theme: "手機的誘惑", poem: "叮咚聲響心頻亂，訊息未讀思緒飛。<br>靜音勿擾是良藥，沉浸書海尋芳菲。", explanation: "聽到通知音思緒就被打斷了。請開啟「勿擾模式」或把手機放遠。不被打擾的讀書效率會翻倍。" },
+            { id: 49, level: "平", theme: "讀書與友誼", poem: "同儕邀約難推辭，礙於情面誤學時。<br>勇敢說不非無情，留得青山待考期。", explanation: "朋友約你卻礙於情面答應？勇敢說「不」吧！真正的朋友會理解你需要準備考試的。" },
+            { id: 50, level: "警惕", theme: "學業與玩樂", poem: "社團活動放光芒，挑燈夜戰社辦忙。<br>學業荒廢惹紅字，本末倒置徒感傷。", explanation: "注意！你在社團投入了過多心力，已經嚴重壓縮讀書時間。請重新分配時間，顧好學生的本分。" },
+            { id: 51, level: "大吉", theme: "手機的誘惑", poem: "科技本是雙刃劍，善用網路查萬卷。<br>不看廢片看教學，化阻為力攀巔峰。", explanation: "你很懂得利用科技輔助學習！用平板看線上課程、用APP背單字，繼續保持這種智慧。" },
+            { id: 52, level: "中吉", theme: "讀書與友誼", poem: "友有疑難我來答，教學相長綻奇葩。<br>莫吝分享己所學，助人助己樂無涯。", explanation: "朋友來問問題時不要覺得浪費時間。在教導別人的過程中，你正在重新梳理觀念，記憶會更深刻。" },
+            { id: 53, level: "小吉", theme: "學業與玩樂", poem: "視考為戲闖關卡，破關斬將樂無涯。<br>學海本是遊樂場，趣味橫生不覺乏。", explanation: "試著把讀書當成「打怪升級」！每讀完一課就給自己小獎勵，用遊戲化的心態面對，學習不痛苦。" },
+            { id: 54, level: "平", theme: "手機的誘惑", poem: "指尖滑動不自覺，夜深人靜眼朦朧。<br>明日精神定萎靡，快快關機入夢中。", explanation: "報復性熬夜滑手機會破壞明天的精神。現在立刻把手機插上充電器，遠離床邊，閉上眼睛睡覺！" },
+            { id: 55, level: "警惕", theme: "讀書與友誼", poem: "同窗本是同林鳥，何苦暗鬥比高低。<br>藏私嫉妒傷和氣，敞開心胸方為宜。", explanation: "因為朋友考得好而產生嫉妒甚至藏私？放下這種有毒的比較心態，心胸開闊你的眼界才會更廣。" },
+            { id: 56, level: "大吉", theme: "學業與玩樂", poem: "週休踏青賞花草，電量充滿精神飽。<br>重回書桌似猛虎，一日千里破難考。", explanation: "剛度過愉快的週末，你身心靈都充飽電了！帶著活力翻開書本，你的吸收力將會前所未有地強大。" },
+            { id: 57, level: "中吉", theme: "手機的誘惑", poem: "數位排毒清心靈，暫離塵囂聽鳥鳴。<br>書中自有黃金屋，古人誠不欺我情。", explanation: "試著給自己半天的「無手機日」。不帶手機去看書，體驗久違的寧靜與深度思考，對大腦非常有益。" },
+            { id: 58, level: "小吉", theme: "讀書與友誼", poem: "人云亦云失方向，盲從補習亦徒勞。<br>了解自我真需求，量身訂做步步高。", explanation: "看朋友買什麼參考書你也跟著買？停下來思考這真的適合你嗎？找到適合自己的讀書節奏才重要。" },
+            { id: 59, level: "平", theme: "學業與玩樂", poem: "嗜好雖美莫沉迷，追星追劇需有期。<br>分清主次明緩急，考後再續未完局。", explanation: "追星、追劇都是好嗜好，但在考前衝刺期請暫時放一邊。分清現在的第一要務，考後再補進度。" },
+            { id: 60, level: "警惕", theme: "手機的誘惑", poem: "虛擬世界尋成就，現實考卷留空白。<br>逃避終非長久計，面對恐懼展將才。", explanation: "大凶！不要因為害怕考不好而逃避到遊戲裡尋求成就感。勇敢面對現實的書本，越逃避恐懼越大。" },
+
+            // 各科專屬 (61-85)
+            { id: 61, level: "大吉", theme: "國文", poem: "浩瀚書海任悠遊，字裡行間意趣留。<br>語感天成如泉湧，文言白話皆通透。", explanation: "語感處於巔峰！面對長篇閱讀，請靜下心體會作者弦外之音，答案往往藏在上下文的脈絡中。" },
+            { id: 62, level: "中吉", theme: "國文", poem: "經史子集多如繁，死記硬背心頭煩。<br>古人軼事當故事，常識積累過難關。", explanation: "面對繁雜的作者字號與國學常識，不要當成電話號碼背。把它們當作古代名人的八卦故事來讀。" },
+            { id: 66, level: "大吉", theme: "英文", poem: "泰西之語本不難，日積月累聚成山。<br>單字片語熟於心，洋洋灑灑若等閒。", explanation: "英文實力累積很紮實！保持每天碰一點英文的習慣，無論看文章還是聽歌，語感會帶領你選對答案。" },
+            { id: 67, level: "中吉", theme: "英文", poem: "時態語態如織網，句型結構要理清。<br>莫憑直覺瞎猜測，文法通透路自平。", explanation: "文法就像蓋房子的鋼筋。把常考的重點時態與句型重新複習一次，你的答題正確率會大幅提升。" },
+            { id: 71, level: "大吉", theme: "數學", poem: "幾何代數了於胸，推演如神若破風。<br>解題猶如解謎語，靈光一閃上天梯。", explanation: "腦筋非常清楚！把數學當作密室逃脫來解，享受那種推導出答案的成就感吧。" },
+            { id: 72, level: "中吉", theme: "數學", poem: "公式切莫死硬背，理解源頭方為對。<br>萬變不離其中理，基礎穩固自無畏。", explanation: "數學絕對不能靠死背公式！回頭弄懂最基礎的觀念和公式是怎麼來的，才是致勝王道。" },
+            { id: 76, level: "大吉", theme: "社會", poem: "史地公民本一家，通古博今綻光華。<br>地圖時間交織網，脈絡清晰走天涯。", explanation: "社會科已達融會貫通！懂得將歷史事件放在地理位置上思考並結合公民法則，繼續保持。" },
+            { id: 77, level: "中吉", theme: "社會", poem: "朝代更迭如流水，前因後果最堪回。<br>莫將歷史當死記，故事串聯智慧堆。", explanation: "讀歷史別只背年代！試著理解「為什麼」發生？背景為何？當成一部連續劇來看會非常有趣。" },
+            { id: 81, level: "大吉", theme: "自然", poem: "理化生地任我行，萬物定律皆分明。<br>觀察入微明真理，邏輯推演若明鏡。", explanation: "擁有科學家的腦袋！能將知識與生活現象完美結合。保持好奇心，自然科高分是你的囊中物。" },
+            { id: 82, level: "中吉", theme: "自然", poem: "生命奧秘在細胞，星體運行有軌道。<br>圖解記憶最深刻，莫把自然當文科。", explanation: "準備生物和地科時，務必親手畫一次人體循環圖或月相圖。動手畫過才能真正刻在腦海裡。" },
+
+            // 未來迷惘與動力 (86-100)
+            { id: 86, level: "大吉", theme: "尋找熱情", poem: "萬物皆有迷人處，尋得熱情發光時。<br>莫嘆眼前書本悶，探索未知立大志。", explanation: "覺得讀書無聊是因為還沒找到熱愛。多去嘗試不同領域，找到想做的事，讀書就會變成你最強大的武器。" },
+            { id: 87, level: "中吉", theme: "讀書的意義", poem: "讀書非為父母求，並非只為爭榜頭。<br>乃是拓展己眼界，未來選擇任遨遊。", explanation: "為什麼要讀書？為了讓未來的你有權利對不喜歡的工作說「不」。讀書是在為自己累積選擇權。" },
+            { id: 88, level: "小吉", theme: "多元發展", poem: "條條大路通羅馬，行行出個狀元郎。<br>志不在此莫心傷，發掘天賦耀四方。", explanation: "對學科毫無興趣嗎？沒關係！去尋找你在技職、藝術、體育或人際溝通上的天賦，那才是你的主場。" },
+            { id: 89, level: "平", theme: "克服挫折", poem: "滿江紅字心滴血，自我懷疑氣力竭。<br>失敗乃是成功母，跌倒再起真豪傑。", explanation: "每一張考砸的試卷都在告訴你「哪裡還需要補強」。收起眼淚把錯的題目弄懂，才是真正的學習。" },
+            { id: 90, level: "警惕", theme: "行動力", poem: "終日空想徒悲傷，羨慕他人放光芒。<br>不如起而行一方，翻開書頁勝迷惘。", explanation: "想得再多不如立刻動手做。現在就去背五個單字、看一頁書，行動是治療迷惘最好的解藥。" },
+            { id: 91, level: "大吉", theme: "大器晚成", poem: "起步稍遲莫氣餒，大器晚成古來有。<br>龜兔賽跑誰稱雄，堅持到底笑到後。", explanation: "覺得自己基礎太差來不及了？永遠不要給自己設限！只要開始努力，結果絕對比直接放棄好上一百倍。" },
+            { id: 92, level: "中吉", theme: "小步快跑", poem: "登高必自卑微起，莫嫌書本太沉寂。<br>小步快跑莫心急，積沙成塔創奇蹟。", explanation: "目標不要設太高，今天的目標設定為「看懂一頁」就好。完成小目標的成就感會推動你前進。" },
+            { id: 96, level: "大吉", theme: "自我和解", poem: "完美主義逼人瘋，放過自己天地寬。<br>盡力無愧於心念，平凡亦能成巨篇。", explanation: "允許自己有考不好的時候。只要你每一次都問心無愧地盡力了，這段過程就是最有價值的。" },
+            { id: 97, level: "中吉", theme: "打破慣性", poem: "渾渾噩噩度時光，舒適圈裡夢黃粱。<br>勇敢踏出第一步，破繭而出做棟樑。", explanation: "要打破不讀書的慣性很痛苦。但請逼自己一次，今晚在書桌前坐滿一小時，你會看到不一樣的自己。" },
+            { id: 100, level: "大吉", theme: "圓滿祝福", poem: "百首籤詩指迷津，最終造化在個人。<br>合上籤筒且奮起，青春無悔自逢春。", explanation: "恭喜抽到圓滿籤！籤詩只能給指引，真正改變命運的是你翻開書本的雙手。勇敢創造無悔青春吧！" }
+        ];
+
+        // 應用程式邏輯
+        const homeState = document.getElementById('homeState');
+        const animationState = document.getElementById('animationState');
+        const resultState = document.getElementById('resultState');
+        const fortuneAnimationBox = document.getElementById('fortuneAnimationBox');
+        const winningStick = document.getElementById('winningStick');
+
+        // 儲存當前抽到的籤詩資料，供下載檔名使用
+        let currentFortune = null;
+
+        function startDrawing() {
+            // 切換到動畫畫面
+            homeState.classList.add('hidden');
+            animationState.classList.remove('hidden');
+            animationState.classList.add('flex');
+
+            // 1. 播放籤筒整體搖晃動畫
+            fortuneAnimationBox.classList.add('shake-container');
+            
+            // 2. 延遲 1.2 秒後停止搖晃，並抽出其中一支籤
+            setTimeout(() => {
+                fortuneAnimationBox.classList.remove('shake-container');
+                winningStick.classList.add('draw-stick-anim');
+
+                // 3. 等待籤抽出動畫完成後，顯示結果卡片
+                setTimeout(() => {
+                    showFortuneResult();
+                    // 恢復籤的初始狀態，供下次使用
+                    winningStick.classList.remove('draw-stick-anim');
+                    
+                    // 隱藏動畫畫面
+                    animationState.classList.add('hidden');
+                    animationState.classList.remove('flex');
+                }, 800);
+
+            }, 1200);
+        }
+
+        function showFortuneResult() {
+            // 隨機抽取一首籤詩
+            const randomIndex = Math.floor(Math.random() * fortunes.length);
+            const data = fortunes[randomIndex];
+            currentFortune = data; // 存入全域變數
+
+            // 將籤詩處理成每句一行
+            // 移除原本的 <br>，並利用逗號與句號進行分割
+            let cleanPoem = data.poem.replace(/<br>/g, '');
+            let poemLines = cleanPoem.split(/[，。]/).filter(line => line.trim() !== '');
+            // 組合成 HTML
+            let formattedPoemHTML = poemLines.map(line => `<span>${line}</span>`).join('');
+
+            // 填入資料
+            document.getElementById('fortuneId').innerText = `第 ${data.id} 籤`;
+            document.getElementById('fortuneLevel').innerText = `【 ${data.level} 】`;
+            document.getElementById('fortuneTheme').innerText = `🔖 專屬主題：${data.theme}`;
+            document.getElementById('fortunePoem').innerHTML = formattedPoemHTML;
+            document.getElementById('fortuneExplanation').innerText = data.explanation;
+
+            // 切換畫面狀態
+            resultState.classList.remove('hidden');
+            resultState.classList.add('fade-in-up');
+        }
+
+        function resetApp() {
+            // 重置狀態，返回首頁
+            resultState.classList.remove('fade-in-up');
+            // 清除截圖時可能殘留的行內強制樣式，確保下次抽籤動畫正常
+            resultState.style.animation = '';
+            resultState.style.opacity = '';
+            resultState.style.transform = '';
+            
+            resultState.classList.add('hidden');
+            homeState.classList.remove('hidden');
+        }
+
+        // 下載圖片功能
+        function downloadImage() {
+            // 改為擷取整個 mainContainer 外框 (包含上方紅條)
+            const captureTarget = document.getElementById('mainContainer');
+            const resultState = document.getElementById('resultState'); // 取得結果卡片區塊
+            const btnContainer = document.getElementById('actionButtons');
+            const copyright = document.getElementById('exportCopyright');
+            const btn = document.getElementById('downloadBtn');
+            const originalHTML = btn.innerHTML;
+            
+            // 顯示處理中狀態
+            btn.innerHTML = '處理中...';
+            btn.disabled = true;
+
+            // 截圖前：隱藏按鈕、顯示版權文字
+            btnContainer.style.display = 'none';
+            copyright.classList.remove('hidden');
+            copyright.classList.add('block');
+            
+            // 💡 關鍵修復：強制移除進場動畫，避免 html2canvas 截圖時拍到「半透明狀態」，解決畫面慘白/遮罩問題
+            resultState.classList.remove('fade-in-up');
+            resultState.style.animation = 'none';
+            resultState.style.opacity = '1';
+            resultState.style.transform = 'none';
+            
+            // 確保「霞鶩文楷」字體完全載入後再截圖，避免文字跑位
+            document.fonts.ready.then(() => {
+                // 使用 html2canvas 進行截圖
+                html2canvas(captureTarget, { 
+                    backgroundColor: null, // 保持透明背景以顯示外框圓角
+                    scale: 2, // 提高畫質
+                    useCORS: true
+                }).then(canvas => {
+                    // 轉為圖片網址
+                    const imgData = canvas.toDataURL('image/png');
+                    
+                    // 觸發下載
+                    const link = document.createElement('a');
+                    link.download = `雙中慧成宮_第${currentFortune.id}籤.png`;
+                    link.href = imgData;
+                    link.click();
+                    
+                    // 截圖後：恢復按鈕與畫面狀態
+                    btnContainer.style.display = 'flex';
+                    copyright.classList.remove('block');
+                    copyright.classList.add('hidden');
+                    btn.innerHTML = originalHTML;
+                    btn.disabled = false;
+                }).catch(err => {
+                    console.error('截圖失敗:', err);
+                    alert('圖片下載失敗，請嘗試直接使用內建截圖功能哦！');
+                    
+                    // 發生錯誤時也要恢復畫面狀態
+                    btnContainer.style.display = 'flex';
+                    copyright.classList.remove('block');
+                    copyright.classList.add('hidden');
+                    btn.innerHTML = originalHTML;
+                    btn.disabled = false;
+                });
+            });
+        }
+    </script>
+</body>
+</html>
