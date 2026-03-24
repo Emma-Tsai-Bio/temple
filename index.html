@@ -53,7 +53,7 @@
 </head>
 <body class="bg-[#FDFBF7] min-h-screen flex flex-col items-center justify-center">
 
-    <!-- 💡 修正問題1：截圖外層包裝。加上 p-5 邊距與背景色，防止 html2canvas 裁切圓角與陰影 -->
+    <!-- 截圖外層包裝。加上 p-5 邊距與背景色，防止 html2canvas 裁切圓角與陰影 -->
     <div id="captureWrapper" class="w-full max-w-md p-5 bg-[#FDFBF7] flex flex-col items-center">
         <!-- 截圖主容器 -->
         <main id="mainContainer" class="w-full bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100 relative">
@@ -103,8 +103,8 @@
                     <p id="fortuneId" class="text-sm text-gray-400 mb-1 font-sans mt-2"></p>
                     <h2 id="fortuneLevel" class="text-4xl font-black text-temple-red mb-2 tracking-widest block font-wenkai"></h2>
                     
-                    <!-- 💡 修正問題：將 inline-flex 改回 html2canvas 最穩定的 inline-block，使用均勻的 py-[6px] 與增加 mt-4 下移 -->
-                    <div class="inline-block bg-temple-red text-white text-sm px-5 py-[6px] rounded-full mt-4 mb-8 font-sans tracking-wider shadow-sm align-middle leading-snug" id="fortuneTheme"></div>
+                    <!-- 💡 修正問題1：使用 w-fit 與 mx-auto 避免 html2canvas 算錯，並利用 pt-[10px] pb-[8px] 彌補中文字體重心偏高的問題 -->
+                    <div class="w-fit mx-auto bg-temple-red text-white text-sm px-6 pt-[10px] pb-[8px] rounded-full mt-4 mb-8 font-sans tracking-wider shadow-sm text-center leading-none" id="fortuneTheme"></div>
 
                     <div id="fortunePoem" class="font-wenkai text-2xl font-bold leading-loose text-temple-text mb-8 tracking-widest flex flex-col items-center gap-2"></div>
 
@@ -138,12 +138,13 @@
         </button>
     </div>
 
-    <!-- 💡 修正問題2：圖片預覽遮罩 (加入 overflow-y-auto 允許上下滑動，修改提示詞) -->
+    <!-- 圖片預覽遮罩 (加入 overflow-y-auto 允許上下滑動) -->
     <div id="imageModal" class="hidden fixed inset-0 bg-black/95 z-[100] overflow-y-auto">
         <!-- 確保內容最小高度為滿版，以便垂直置中，超出版面則滑動 -->
         <div class="min-h-screen w-full flex flex-col items-center justify-center p-6 py-12">
             
-            <div class="text-white text-xl font-bold mb-6 font-wenkai animate-bounce tracking-widest text-center shadow-black drop-shadow-md">
+            <!-- 💡 修正問題2：加入 id 以便 JS 根據設備動態修改文字 -->
+            <div id="downloadPrompt" class="text-white text-xl font-bold mb-6 font-wenkai animate-bounce tracking-widest text-center shadow-black drop-shadow-md">
                 👇 請長按儲存圖片 👇
             </div>
             
@@ -232,12 +233,21 @@
         }
 
         function downloadImage() {
-            // 💡 修正：改成對整組「包有邊距的容器」截圖，圓角與邊框就不會被裁切了
             const captureTarget = document.getElementById('captureWrapper');
             const copyright = document.getElementById('exportCopyright');
             const btn = document.getElementById('downloadBtn');
             const originalHTML = btn.innerHTML;
             
+            // 💡 動態偵測設備並修改提示詞
+            // 透過檢查 ontouchstart 或 maxTouchPoints 來判斷是否為觸控設備 (手機/平板)
+            const isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0) || (navigator.msMaxTouchPoints > 0);
+            const promptElement = document.getElementById('downloadPrompt');
+            if (isTouchDevice) {
+                promptElement.textContent = '👇 請長按儲存圖片 👇';
+            } else {
+                promptElement.textContent = '👇 請對圖片按右鍵 ➜ 另存圖片 👇';
+            }
+
             btn.innerHTML = '產圖中...';
             btn.disabled = true;
             actionButtons.style.display = 'none';
