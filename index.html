@@ -51,24 +51,18 @@
         }
     </script>
 </head>
-<!-- 💡 修正問題2：全站加上 select-none 防止使用者不小心選取到任何網頁文字 -->
 <body class="bg-[#FDFBF7] min-h-screen flex flex-col items-center justify-center select-none">
 
-    <!-- 截圖外層包裝。加上 p-5 邊距與背景色，防止 html2canvas 裁切圓角與陰影 -->
     <div id="captureWrapper" class="w-full max-w-md p-5 bg-[#FDFBF7] flex flex-col items-center">
-        <!-- 截圖主容器 -->
         <main id="mainContainer" class="w-full bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100 relative">
-            <!-- 頂部紅條 -->
             <div class="h-3 bg-temple-red w-full"></div>
 
             <div class="p-6 md:p-8 text-center" id="appContent">
                 
-                <!-- ====== 狀態 1：首頁 ====== -->
                 <div id="homeState" class="block py-6">
                     <div class="mb-4 flex justify-center text-7xl drop-shadow-md">
                         ⛩️
                     </div>
-                    <!-- 替換為書本 emoji -->
                     <h1 class="text-3xl font-bold font-wenkai text-temple-red mb-4 tracking-widest">📖 讀書運勢求籤筒</h1>
                     <p class="text-gray-600 mb-8 font-wenkai text-lg leading-relaxed">在心中默念你近期的學習煩惱，<br>然後點擊按鈕求籤。</p>
                     
@@ -77,7 +71,6 @@
                     </button>
                 </div>
 
-                <!-- ====== 狀態 2：動畫中 (籤筒) ====== -->
                 <div id="loadingState" class="hidden py-10">
                     <div class="relative w-28 h-36 bg-[#8B4513] rounded-b-2xl mx-auto shadow-xl flex justify-center border-t-8 border-[#5C2E0B] animate-shake">
                         <div class="absolute -top-10 left-4 w-2 h-16 bg-[#FCD34D] transform -rotate-12 rounded-t-sm shadow-sm"></div>
@@ -97,14 +90,19 @@
                     <p class="mt-12 text-temple-red font-wenkai text-xl tracking-widest animate-pulse">考神賜籤中...</p>
                 </div>
 
-                <!-- ====== 狀態 3：抽籤結果 ====== -->
                 <div id="resultState" class="hidden">
                     <div class="text-temple-red font-bold text-xl mb-3 tracking-widest font-wenkai opacity-90 border-b-2 border-temple-red/20 pb-2 inline-block">雙中慧成宮</div>
 
                     <p id="fortuneId" class="text-sm text-gray-400 mb-1 font-sans mt-2"></p>
                     <h2 id="fortuneLevel" class="text-4xl font-black text-temple-red mb-2 tracking-widest block font-wenkai"></h2>
                     
-                    <div class="w-fit mx-auto bg-temple-red text-white text-sm px-6 pt-[10px] pb-[8px] rounded-full mt-4 mb-8 font-sans tracking-wider shadow-sm text-center leading-none" id="fortuneTheme"></div>
+                    <!-- 💡 終極置中解法：
+                         1. 外層 w-full + flex justify-center 負責防護與左右置中
+                         2. 內層完全放棄 padding 上下推擠，改用最原始的 height 與 line-height 寫死高度
+                    -->
+                    <div class="flex justify-center mt-5 mb-8 w-full">
+                        <div id="fortuneTheme" class="bg-temple-red text-white text-sm font-sans tracking-wider rounded-full shadow-sm whitespace-nowrap block box-border" style="height: 34px; line-height: 35px; padding: 0 24px;"></div>
+                    </div>
 
                     <div id="fortunePoem" class="font-wenkai text-2xl font-bold leading-loose text-temple-text mb-8 tracking-widest flex flex-col items-center gap-2"></div>
 
@@ -114,7 +112,6 @@
                     </div>
                 </div>
                 
-                <!-- 下載圖片時專用的版權浮水印 (預設隱藏，截圖時顯示) -->
                 <div id="exportCopyright" class="hidden mt-8 mb-2 text-xs text-gray-400 font-sans text-center font-bold tracking-widest">
                     © 專屬雙中的100首讀書籤詩
                 </div>
@@ -122,13 +119,10 @@
         </main>
     </div>
 
-    <!-- 網頁首頁最下方的版權宣告 -->
     <div class="mt-4 mb-8 text-center text-gray-400 text-xs font-sans tracking-widest">
         © 專屬雙中的100首讀書籤詩
     </div>
 
-    <!-- 💡 修正問題1：移除預設的 flex，改由 JS 控制，徹底解決 inline-style 覆蓋問題 -->
-    <!-- 底部按鈕區 -->
     <div id="actionButtons" class="hidden fixed bottom-6 left-0 right-0 justify-center gap-4 px-4 z-50">
         <button onclick="resetApp()" class="bg-white text-gray-600 border border-gray-300 font-wenkai py-3 px-6 rounded-full shadow-lg hover:bg-gray-50 transition-colors">
             重新求籤
@@ -139,19 +133,15 @@
         </button>
     </div>
 
-    <!-- 圖片預覽遮罩 (加入 overflow-y-auto 允許上下滑動) -->
     <div id="imageModal" class="hidden fixed inset-0 bg-black/95 z-[100] overflow-y-auto">
-        <!-- 確保內容最小高度為滿版，以便垂直置中，超出版面則滑動 -->
         <div class="min-h-screen w-full flex flex-col items-center justify-center p-6 py-12">
             
             <div id="downloadPrompt" class="text-white text-xl font-bold mb-6 font-wenkai animate-bounce tracking-widest text-center shadow-black drop-shadow-md">
                 👇 請長按儲存圖片 👇
             </div>
             
-            <!-- 加上 -webkit-touch-callout: default 確保 iOS 可以順利長按跳出儲存選單 -->
             <img id="generatedImg" src="" class="w-full max-w-sm rounded-xl shadow-2xl border border-white/10 pointer-events-auto" style="-webkit-touch-callout: default;" alt="專屬籤詩">
             
-            <!-- 放大的返回按鈕，置於最下方 -->
             <button onclick="closeModal()" class="mt-10 mb-8 bg-white/20 text-white px-10 py-3 rounded-full font-wenkai text-lg border border-white/40 hover:bg-white/30 transition-colors tracking-widest">
                 返回
             </button>
@@ -159,7 +149,6 @@
     </div>
 
     <script>
-        // 您的 100 首籤詩資料庫
         const fortunes = [
             {
                 id: "第 1 籤",
@@ -196,7 +185,6 @@
             loadingState.classList.add('hidden');
             loadingState.classList.remove('flex');
             
-            // 隨機抽籤
             const randomIndex = Math.floor(Math.random() * fortunes.length);
             const data = fortunes[randomIndex];
 
@@ -216,7 +204,6 @@
 
             resultState.classList.remove('hidden');
             
-            // 💡 修正問題1：以 class 切換取代 style.display
             actionButtons.classList.remove('hidden');
             actionButtons.classList.add('flex');
         }
@@ -228,7 +215,6 @@
             
             resultState.classList.add('hidden');
             
-            // 💡 修正問題1：確實把 flex 移除並加上 hidden，按鈕一定會消失
             actionButtons.classList.add('hidden');
             actionButtons.classList.remove('flex');
             
@@ -246,7 +232,6 @@
             const btn = document.getElementById('downloadBtn');
             const originalHTML = btn.innerHTML;
             
-            // 動態偵測設備並修改提示詞
             const isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0) || (navigator.msMaxTouchPoints > 0);
             const promptElement = document.getElementById('downloadPrompt');
             if (isTouchDevice) {
@@ -258,11 +243,9 @@
             btn.innerHTML = '產圖中...';
             btn.disabled = true;
             
-            // 💡 修正問題1：以 class 切換
             actionButtons.classList.add('hidden');
             actionButtons.classList.remove('flex');
             
-            // 顯示截圖專用的版權文字
             copyright.classList.remove('hidden');
             copyright.classList.add('block');
             
@@ -286,11 +269,9 @@
                     btn.innerHTML = originalHTML;
                     btn.disabled = false;
                     
-                    // 💡 修正問題1：以 class 切換
                     actionButtons.classList.remove('hidden');
                     actionButtons.classList.add('flex');
                     
-                    // 產圖完畢，隱藏截圖專用的版權文字
                     copyright.classList.remove('block');
                     copyright.classList.add('hidden');
                 }).catch(err => {
@@ -298,7 +279,6 @@
                     btn.innerHTML = originalHTML;
                     btn.disabled = false;
                     
-                    // 💡 修正問題1：以 class 切換
                     actionButtons.classList.remove('hidden');
                     actionButtons.classList.add('flex');
                     
